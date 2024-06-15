@@ -1,0 +1,78 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+
+class Program
+{
+    static void Main()
+    {
+        var predictor = new NextWordPrediction();
+        var trainingSentences = new string[]
+        {
+            "im alireza",
+            "Hello mohammad-zare",
+            "this is the text i want this app to predict the next word from it"
+        };
+
+        predictor.Train(trainingSentences);
+
+        Console.WriteLine("Enter a word to predict the next word:(if you are Ostad ... Enter hello :) ");
+        var input = Console.ReadLine();
+        var prediction = predictor.PredictNextWord(input);
+
+        if (!string.IsNullOrEmpty(prediction))
+        {
+            Console.WriteLine($"The predicted next word is: {prediction}");
+        }
+        else
+        {
+            Console.WriteLine("No prediction available.");
+        }
+    }
+}
+
+public class NextWordPrediction
+{
+    private Dictionary<string, Dictionary<string, int>> wordPairs;
+
+    public NextWordPrediction()
+    {
+        wordPairs = new Dictionary<string, Dictionary<string, int>>();
+    }
+
+    public void Train(string[] sentences)
+    {
+        foreach (var sentence in sentences)
+        {
+            var words = sentence.Split(new char[] { ' ', '.', '?' }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < words.Length - 1; i++)
+            {
+                var currentWord = words[i].ToLower();
+                var nextWord = words[i + 1].ToLower();
+
+                if (!wordPairs.ContainsKey(currentWord))
+                {
+                    wordPairs[currentWord] = new Dictionary<string, int>();
+                }
+
+                if (!wordPairs[currentWord].ContainsKey(nextWord))
+                {
+                    wordPairs[currentWord][nextWord] = 0;
+                }
+
+                wordPairs[currentWord][nextWord]++;
+            }
+        }
+    }
+
+    public string PredictNextWord(string input)
+    {
+        var inputLower = input.ToLower();
+        if (wordPairs.ContainsKey(inputLower))
+        {
+            return wordPairs[inputLower].OrderByDescending(kvp => kvp.Value).First().Key;
+        }
+        return string.Empty;
+    }
+}
